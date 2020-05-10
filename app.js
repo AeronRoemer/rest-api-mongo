@@ -1,18 +1,20 @@
 'use strict';
 
-var express = require("express");
-var app = express();
-var routes = require("./routes");
+const express = require("express");
+const app = express();
+const routes = require("./routes");
 
-var jsonParser = require("body-parser").json;
-var logger = require("morgan");
+const jsonParser = require("body-parser").json;
+const logger = require("morgan");
 
 app.use(logger("dev"));
 app.use(jsonParser());
 
 app.use("/questions", routes);
 
-// catch 404 and forward to error handler
+// if request falls through all routes above, 
+// this middleware will catch 404 and forward to error handler
+//'next' required to continue to next middleware
 app.use(function(req, res, next){
 	var err = new Error("Not Found");
 	err.status = 404;
@@ -22,6 +24,7 @@ app.use(function(req, res, next){
 // Error Handler
 
 app.use(function(err, req, res, next){
+	//500 comes from internal server errors
 	res.status(err.status || 500);
 	res.json({
 		error: {
@@ -30,8 +33,8 @@ app.use(function(err, req, res, next){
 	});
 });
 
-var port = process.env.PORT || 3000;
-
+const port = process.env.PORT || 3000;
+//callback function executes after 'listen'
 app.listen(port, function(){
 	console.log("Express server is listening on port", port);
 });

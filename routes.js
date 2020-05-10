@@ -57,14 +57,16 @@ router.delete("/:qID/answers/:aID", function(req, res){
 	});
 });
 
-// POST /questions/:qID/answers/:aID/vote-up
-// POST /questions/:qID/answers/:aID/vote-down
+// POST /questions/:qID/answers/:aID/vote-up & vote-down
+// passed a function to display 404 if url doesn't contain 'up' or 'down'
 // Vote on a specific answer
 router.post("/:qID/answers/:aID/vote-:dir", function(req, res, next){
+	//.search() returns -1  when no match is found
 		if(req.params.dir.search(/^(up|down)$/) === -1) {
 			var err = new Error("Not Found");
 			err.status = 404;
 			next(err);
+			//err gets passed to a function that can handle it
 		} else {
 			next();
 		}
