@@ -12,13 +12,16 @@ db.once("open", function(){
     console.log("Database connection successfull")
     const Schema = mongoose.Schema;
     const animalSchema = new Schema({
-        type: String,
-        color: String,
-        size: String, 
-        mass: Number,
-        name: String
+        type:  {type: String, default: "goldfish"},
+        color: {type: String, default: "golden"},
+        size:  {type: String, default: "small"},
+        mass:  {type: Number, default: .005},
+        name:  {type: String, default: "Fisho"}
     })
-     const Animal = mongoose.model("Animal", animalSchema)
+     const Animal = mongoose.model("Animal", animalSchema);
+
+     let animal = new Animal({}); //creates new Animal based on defaults
+
      const elephant = new Animal({
         type: "elephant",
         color: "grey",
@@ -26,15 +29,16 @@ db.once("open", function(){
         mass: 6000,
         name: "Lawrence"
      })
-     elephant.save(function(err){
-         if (err){
-             console.error("Save Failed ", err)
-         } else {
-             console.log("Save success")
-             db.close(function(){
-                 console.log("db connection closed")
-             });
-         }
-     });
-    
+
+     Animal.remove({}, function(){ //removes everything from Animal collection prior to saves starting
+        elephant.save(function(err){
+            if (err) console.error("Save Failed ", err);
+            animal.save(function(err){     //db closes after animal is finished saving
+                console.log("Save success")
+                db.close(function(){
+                    console.log("db connection closed")
+                });
+            });
+        });
+     }); 
 })
