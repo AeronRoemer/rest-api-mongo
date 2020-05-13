@@ -3,12 +3,25 @@
 const express = require("express");
 const app = express();
 const routes = require("./routes");
-
+const mongoose = require('mongoose');
 const jsonParser = require("body-parser").json;
 const logger = require("morgan");
 
 app.use(logger("dev"));
 app.use(jsonParser());
+
+mongoose.connect("mongodb://localhost:27017/q_and_a"); //connect to mongo
+
+//basic mongo setup
+const db = mongoose.connection;
+
+db.on("error", function(err){
+    console.error("connection error:", err)
+})
+//only fires event the first time it occurs
+db.once("open", function(){
+	console.log("Database connection successfull")
+});
 
 app.use("/questions", routes);
 
