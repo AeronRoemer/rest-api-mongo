@@ -16,10 +16,20 @@ const AnswerSchema = new Schema({
     votes: {type: Number, default: 0}
 });
 
-AnswerSchema.methods.update = function(updates, callback){
+AnswerSchema.method("update", function(updates, callback){ //created using the 'method' method
+    Object.assign(this, //refers to document
+    updates, {updatedAt: new Date()});
+    this.parent().save(callback)
+});
 
-};
-
+AnswerSchema.method("vote", function(updates, callback){ //created using the 'method' method
+    if (vote === "up"){
+        this.votes += 1;
+    } else {
+        this.votes -= 1;
+    }
+    this.parent().save(callback)
+});
 const questionSchema = new Schema({
     text: String,
     createdAt: {type: Date, default: Date.now},

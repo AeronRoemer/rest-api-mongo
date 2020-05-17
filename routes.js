@@ -1,29 +1,48 @@
 'use strict';
 
-var express = require("express");
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
+const Question = require("./models").Question
 
 // GET /questions
 // Route for questions collection
-router.get("/", function(req, res){
-	res.json({response: "You sent me a GET request"});
+router.get("/", function(req, res, next){
+	Question.find({}, null, {sort:{createdAt: -1}}, //object literal provides sort params. -1 for desc order
+		 function(err, questions){ //second method is projection
+			if (err) return next(err);
+			res.json(questions); //returns questions as json response
+	})
 });
+/* MONGOOSE QUERY BUILDER
+can also be made like this: 
+Question.find({})
+	.sort({createdAt: -1})
+	.exec(
+		function(err, questions){
+			if (err) return next(err);
+			res.json(questions); 
+	)
+allows for more options between querying and executing the query
+*/
 
 // POST /questions
 // Route for creating questions
 router.post("/", function(req, res){
-	res.json({
-		response: "You sent me a POST request",
-		body: req.body
+	const question = new Question(req.body);
+	question.save(function(err, next){
+		if (err) return next(err);
+		res.status(201); //for successful creation
+		res.json(question);//sends json of new question
 	});
 });
 
 // GET /questions/:id
 // Route for specific questions
 router.get("/:qID", function(req, res){
-	res.json({
-		response: "You sent me a GET request for ID " + req.params.qID
-	});
+	Question.findById(req.params.qID, function(err, document){
+		if (err) return next(err);
+		res.json(document); //returns questions as json response
+	})
 });
 
 // POST /questions/:id/answers
