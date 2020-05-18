@@ -4,6 +4,34 @@ const express = require("express");
 const router = express.Router();
 const Question = require("./models").Question
 
+router.param(//calls method on any matching route
+	"qID", //name of route as a string
+	function(req, res, next, id){ //executed when qID is present in route
+		Question.findById(id, function(err, document){
+			if (err) return next(err);
+			if (!document){
+				err = new Error("Not Found");
+				err.status = 404;
+				return next(err);
+			}
+			req.question(document)
+			return next(); //goes on to next middleware
+		})
+	}
+); 
+ 
+router.param(//to match answer documents
+	"aID", 
+	function(req, res, next, id){ //executed when aID is present in route
+		req.answer = req.question.answers.id(id)// 'id' is a mongoose method that returns a document with matching ID
+		if (!req.answer){
+			err = new Error("Not Found");
+			err.status = 404;
+			return next(err);
+			}
+			return next();
+	}
+); 
 // GET /questions
 // Route for questions collection
 router.get("/", function(req, res, next){
@@ -29,7 +57,7 @@ allows for more options between querying and executing the query
 // Route for creating questions
 router.post("/", function(req, res){
 	const question = new Question(req.body);
-	question.save(function(err, next){
+	question.save(function(err, next){ //on saving
 		if (err) return next(err);
 		res.status(201); //for successful creation
 		res.json(question);//sends json of new question
@@ -39,41 +67,39 @@ router.post("/", function(req, res){
 // GET /questions/:id
 // Route for specific questions
 router.get("/:qID", function(req, res){
-	Question.findById(req.params.qID, function(err, document){
-		if (err) return next(err);
-		res.json(document); //returns questions as json response
-	})
+	res.json(req.question);
 });
 
 // POST /questions/:id/answers
 // Route for creating an answer
-router.post("/:qID/answers", function(req, res){
-	res.json({
-		response: "You sent me a POST request to /answers",
-		questionId: req.params.qID,
-		body: req.body
-	});
+router.post("/:qID/answers", function(req, res, next){
+	req.question.answers.push(req.body)
+	req.question.save(function(err, next){
+		if (err) return next(err);
+		res.status(201); //for successful creation
+		res.json(question);//sends json of new question
+	})
 });
 
 // PUT /questions/:qID/answers/:aID
 // Edit a specific answer
 router.put("/:qID/answers/:aID", function(req, res){
-	res.json({
-		response: "You sent me a PUT request to /answers",
-		questionId: req.params.qID,
-		answerId: req.params.aID,
-		body: req.body
-	});
+	req.answer.update(req.body, function(err, update){
+		if (err) return next(err);
+		res.status(201);
+		res.json(update);
+	}) //relying on route middleware
 });
 
 // DELETE /questions/:qID/answers/:aID
 // Delete a specific answer
 router.delete("/:qID/answers/:aID", function(req, res){
-	res.json({
-		response: "You sent me a DELETE request to /answers",
-		questionId: req.params.qID,
-		answerId: req.params.aID
-	});
+	req.answer.remove(function(err){
+		req.question.save(function(err){
+			if (err) return next(err);
+			res.json(question) //returns question, now missing deleted answer
+		})
+	})//mongoose remove method
 });
 
 // POST /questions/:qID/answers/:aID/vote-up & vote-down
@@ -87,15 +113,14 @@ router.post("/:qID/answers/:aID/vote-:dir", function(req, res, next){
 			next(err);
 			//err gets passed to a function that can handle it
 		} else {
+			req.vote = req.params.dir; //name change for readability 
 			next();
 		}
 	}, function(req, res){
-	res.json({
-		response: "You sent me a POST request to /vote-" + req.params.dir,
-		questionId: req.params.qID,
-		answerId: req.params.aID,
-		vote: req.params.dir
-	});
+		req.answer.vote(req.vote, function(err, question){
+			if (err) return next(err);
+			res.json(question);
+		})
 });
 
 module.exports = router;
