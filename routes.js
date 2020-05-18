@@ -14,7 +14,7 @@ router.param(//calls method on any matching route
 				err.status = 404;
 				return next(err);
 			}
-			req.question(document)
+			req.question = document;
 			return next(); //goes on to next middleware
 		})
 	}
@@ -77,7 +77,7 @@ router.post("/:qID/answers", function(req, res, next){
 	req.question.save(function(err, next){
 		if (err) return next(err);
 		res.status(201); //for successful creation
-		res.json(question);//sends json of new question
+		res.json(req.question);//sends json of new question
 	})
 });
 

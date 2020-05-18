@@ -22,7 +22,7 @@ AnswerSchema.method("update", function(updates, callback){ //created using the '
     this.parent().save(callback)
 });
 
-AnswerSchema.method("vote", function(updates, callback){ //created using the 'method' method
+AnswerSchema.method("vote", function(vote, callback){ //created using the 'method' method
     if (vote === "up"){
         this.votes += 1;
     } else {
