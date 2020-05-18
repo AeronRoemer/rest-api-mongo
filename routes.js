@@ -97,7 +97,7 @@ router.delete("/:qID/answers/:aID", function(req, res){
 	req.answer.remove(function(err){
 		req.question.save(function(err){
 			if (err) return next(err);
-			res.json(question) //returns question, now missing deleted answer
+			res.json(req.question) //returns question, now missing deleted answer
 		})
 	})//mongoose remove method
 });
